@@ -10,7 +10,7 @@ export function getPool(): Pool {
   }
 
   if (!pool) {
-    pool = new Pool({ connectionString });
+    pool = new Pool({ connectionString, connectionTimeoutMillis: 5_000, max: 5 });
   }
 
   return pool;

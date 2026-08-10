@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { BookingForm } from "@/components/BookingForm";
 import { PageIntro } from "@/components/PageIntro";
 import { getLocation, isLocationSlug, locationStaticParams } from "@/config/locations";
@@ -9,6 +10,7 @@ export default async function Page({ params }: Props) {
   const { city } = await params;
   if (!isLocationSlug(city)) return notFound();
   const location = getLocation(city);
+  await connection();
   const enabled = process.env.BOOKING_ENABLED === "true" && Boolean(process.env.DATABASE_URL);
   return (
     <>
