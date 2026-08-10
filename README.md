@@ -38,6 +38,30 @@ docker run --rm -p 3000:3000 ezheminutka
 - Оригинальный логотип: положить файл `logo-original.png` в `public/brand/`, затем заменить путь в `src/config/brand.ts` на `/brand/logo-original.png`.
 - Оригинальные фотографии: положить в `public/media/` под именами из `public/media/README.md`. Сейчас используются безопасные CSS-заглушки без сетевых изображений.
 
+## Что загрузить вручную
+
+Логотип владельца:
+
+- `public/brand/logo-original.png`
+
+После загрузки нужно заменить только `logoSrc` в `src/config/brand.ts` на
+`/brand/logo-original.png`.
+
+Фотографии:
+
+- `public/media/hero.jpg`
+- `public/media/interior-01.jpg`
+- `public/media/interior-02.jpg`
+- `public/media/hedgehog-01.jpg`
+- `public/media/hedgehog-02.jpg`
+- `public/media/event-01.jpg`
+- `public/media/event-02.jpg`
+- `public/media/og-cover.jpg`
+
+После загрузки фотографий нужно прописать соответствующие публичные пути только в
+`src/config/media.ts`. Компонент `Media` автоматически заменит CSS-заглушки на
+настоящие изображения; JSX страниц менять не нужно.
+
 ## Маршруты
 
 - `/` — основной лендинг;
