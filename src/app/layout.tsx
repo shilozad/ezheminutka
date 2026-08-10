@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+import "./globals.css";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { siteConfig } from "@/config/site";
+export const metadata: Metadata = {
+  title: {
+    default: `${siteConfig.name} — тайм-кафе с ёжиками`,
+    template: `%s — ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+};
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="ru">
+      <body>
+        <a className="skip-link" href="#content">
+          К содержанию
+        </a>
+        <Header />
+        <main id="content">{children}</main>
+        <Footer />
+      </body>
+    </html>
+  );
+}
