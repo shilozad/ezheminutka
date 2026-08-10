@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "db:migrate": "node scripts/migrate.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
@@ -12,11 +13,13 @@
   },
   "dependencies": {
     "next": "16.2.12",
+    "pg": "^8.16.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "^24",
+    "@types/pg": "^8.15.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "prettier": "^3.6",
