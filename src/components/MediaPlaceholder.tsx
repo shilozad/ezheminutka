@@ -1,0 +1,1 @@
+export function MediaPlaceholder({ label, className = "" }: { label: string; className?: string }) { return <div className={`media-placeholder ${className}`} role="img" aria-label={label}><span className="media-mark" aria-hidden="true"/><span>{label}</span></div>; }

@@ -1,0 +1,8 @@
+{
+  "name": "ezheminutka",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "dev": "next dev", "build": "next build", "start": "next start", "lint": "tsc --noEmit" },
+  "dependencies": { "next": "16.2.12", "react": "19.2.8", "react-dom": "19.2.8" },
+  "devDependencies": { "@types/node": "^24", "@types/react": "^19", "@types/react-dom": "^19", "typescript": "^5.9" }
+}

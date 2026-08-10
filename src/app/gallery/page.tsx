@@ -1,0 +1,4 @@
+import type { Metadata } from "next"; import { PageIntro } from "@/components/PageIntro"; import { MediaPlaceholder } from "@/components/MediaPlaceholder";
+export const metadata: Metadata = { title: "Галерея" };
+const labels = ["Интерьер — общий план", "Зона отдыха", "Знакомство с ёжиками", "Уютные детали", "Праздник в кафе", "Время с друзьями", "Африканский ёжик", "Событие в Ежеминутке"];
+export default function GalleryPage() { return <><PageIntro eyebrow="Будущая фотолента" title="Галерея Ежеминутки">Здесь появятся настоящие фотографии пространства, ёжиков и встреч. Динамическую галерею подключим на следующем этапе.</PageIntro><section className="section compact"><div className="container gallery-grid">{labels.map((label,i) => <MediaPlaceholder key={label} label={label} className={i===0 || i===5 ? "wide" : ""}/>)}</div></section></>; }
