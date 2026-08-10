@@ -34,19 +34,25 @@ export function BookingPreview({
                 <input disabled type="time" />
               </label>
             </div>
-            <label>
-              Тип посещения
-              <select disabled defaultValue="">
-                <option value="" disabled>
-                  Выберите формат
-                </option>
-                {services
-                  .filter((x) => x.enabled)
-                  .map((x) => (
-                    <option key={x.id}>{x.title}</option>
-                  ))}
-              </select>
-            </label>
+            <div className="form-row">
+              <label>
+                Количество гостей
+                <input disabled type="number" min="1" placeholder="Например, 2" />
+              </label>
+              <label>
+                Тип посещения
+                <select disabled defaultValue="">
+                  <option value="" disabled>
+                    Выберите формат
+                  </option>
+                  {services
+                    .filter((x) => x.enabled)
+                    .map((x) => (
+                      <option key={x.id}>{x.title}</option>
+                    ))}
+                </select>
+              </label>
+            </div>
             <label>
               Комментарий
               <textarea disabled rows={4} placeholder="Пожелания к визиту" />
@@ -59,7 +65,8 @@ export function BookingPreview({
             <span className="eyebrow">Важно</span>
             <h2>Пока это макет</h2>
             <p>
-              Для записи позвоните: <a href={`tel:${location.phone}`}>{location.phone}</a>. Backend
+              Для записи позвоните:{" "}
+              <a href={`tel:${location.phone.replace(/[^+\d]/g, "")}`}>{location.phone}</a>. Backend
               появится на следующем этапе.
             </p>
           </aside>

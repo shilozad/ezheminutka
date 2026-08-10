@@ -22,11 +22,42 @@
 
 Пока media-значения равны `null`, интерфейс показывает placeholders. Рекомендуемые имена файлов перечислены в README каждой media-папки.
 
-## Разработка
+## Локальный запуск и production
+
+Требуется Node.js 24.
 
 ```bash
 npm install
+npm run dev
+```
+
+Сайт будет доступен на `http://localhost:3000`. Production-проверка и запуск:
+
+```bash
+npm run build
+npm start
+```
+
+Дополнительные проверки:
+
+```bash
 npm run typecheck
 npm run format:check
-npm run build
 ```
+
+## Docker
+
+```bash
+docker build -t ezheminutka .
+docker run --rm -p 3000:3000 ezheminutka
+```
+
+Контейнер слушает `0.0.0.0:3000`.
+
+## Материалы владельца
+
+Оригинальный логотип нужно вручную положить в `public/brand/logo-original.png`, затем заменить
+`logoSrc` в `src/config/brand.ts` на `/brand/logo-original.png`.
+
+Реальные фотографии также загружаются вручную в media-папку соответствующего города. После
+загрузки пути указываются в `src/config/media.ts`; JSX менять не требуется.

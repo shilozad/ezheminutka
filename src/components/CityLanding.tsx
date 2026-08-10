@@ -7,10 +7,18 @@ import type { LocationTariffs } from "@/content/tariffs";
 import type { Service } from "@/content/services";
 const amenities = [
   ["Ёжики", "Бережное общение с главными хозяевами."],
+  ["Чай и печенье", "Тёплое дополнение к неспешной встрече."],
   ["Настольные игры", "Для двоих, семьи или компании."],
   ["Игровые приставки", "Для дружеского турнира."],
   ["Wi-Fi", "Оставайтесь на связи."],
   ["Уютное пространство", "Для отдыха и разговоров."],
+];
+const rules = [
+  "Слушать администратора",
+  "Бережно обращаться с животными",
+  "Детям общаться с ёжиками под присмотром взрослых",
+  "Мыть или обрабатывать руки",
+  "Не кормить ёжиков своей едой",
 ];
 export function CityLanding({
   location,
@@ -135,6 +143,22 @@ export function CityLanding({
           </div>
         </div>
       </section>
+      <section className="section rules">
+        <div className="container split">
+          <div>
+            <span className="eyebrow">Забота прежде всего</span>
+            <h2>Несложные правила общения</h2>
+          </div>
+          <ol>
+            {rules.map((rule, index) => (
+              <li key={rule}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                {rule}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
       <section className="section" id="gallery">
         <div className="container">
           <div className="section-heading">
@@ -166,6 +190,18 @@ export function CityLanding({
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+      <section className="section">
+        <div className="container cta">
+          <div>
+            <span className="eyebrow">Пора знакомиться</span>
+            <h2>Хотите познакомиться с ёжиками?</h2>
+            <p>Выберите удобный формат — онлайн-бронирование скоро появится.</p>
+          </div>
+          <Link className="button button-light" href={`${base}/booking`}>
+            Забронировать посещение
+          </Link>
         </div>
       </section>
       <section className="section contacts" id="contacts">

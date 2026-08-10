@@ -73,7 +73,7 @@ export const locations: Record<LocationSlug, Location> = {
 };
 
 export function isLocationSlug(value: string): value is LocationSlug {
-  return value in locations;
+  return Object.hasOwn(locations, value);
 }
 export function getLocation(slug: LocationSlug): Location {
   return locations[slug];

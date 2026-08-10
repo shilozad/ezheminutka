@@ -27,25 +27,9 @@ const make = (enabled: ServiceId[]): Service[] =>
     title,
     enabled: enabled.includes(id as ServiceId),
   }));
+const allServices = Object.keys(titles) as ServiceId[];
 export const servicesByLocation: Record<LocationSlug, Service[]> = {
-  moscow: make([
-    "regularVisit",
-    "date",
-    "birthday",
-    "childrenParty",
-    "excursion",
-    "photoSession",
-    "rent",
-  ]),
-  spb: make([
-    "regularVisit",
-    "date",
-    "birthday",
-    "childrenParty",
-    "excursion",
-    "photoSession",
-    "rent",
-    "coworking",
-  ]),
-  kazan: make(["regularVisit", "date", "birthday", "childrenParty", "excursion", "quest", "rent"]),
+  moscow: make(allServices),
+  spb: make(allServices),
+  kazan: make(allServices),
 };
