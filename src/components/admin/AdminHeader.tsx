@@ -17,6 +17,7 @@ export function AdminHeader({ admin, subtitle }: { admin: AdminContext; subtitle
         <nav>
           <Link href="/admin">Брони</Link>
           <Link href="/admin/appearance">Внешний вид</Link>
+          <Link href="/admin/gallery">Галерея</Link>
         </nav>
       </div>
       <div>

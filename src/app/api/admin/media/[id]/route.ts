@@ -20,7 +20,7 @@ async function deleteMediaAsset(request: Request, { params }: { params: Promise<
   )
     return err("Недостаточно прав.", 403);
   const used = await pool.query(
-    `SELECT EXISTS(SELECT 1 FROM brand_settings WHERE logo_asset_id=$1) OR EXISTS(SELECT 1 FROM location_page_content WHERE hero_asset_id=$1) OR EXISTS(SELECT 1 FROM location_amenities WHERE background_asset_id=$1) used`,
+    `SELECT EXISTS(SELECT 1 FROM brand_settings WHERE logo_asset_id=$1) OR EXISTS(SELECT 1 FROM location_page_content WHERE hero_asset_id=$1) OR EXISTS(SELECT 1 FROM location_amenities WHERE background_asset_id=$1) OR EXISTS(SELECT 1 FROM gallery_items WHERE media_asset_id=$1) used`,
     [id],
   );
   if (used.rows[0].used) return err("Сначала уберите изображение из блока сайта.", 409);
