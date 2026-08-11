@@ -1181,3 +1181,151 @@ p {
     flex: 1;
   }
 }
+.amenity {
+  position: relative;
+  overflow: hidden;
+  min-height: 210px;
+}
+.amenity-photo {
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+}
+.amenity-photo h3,
+.amenity-photo p,
+.amenity-photo > span {
+  color: inherit;
+  position: relative;
+  z-index: 1;
+}
+.amenity-icon {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1;
+  margin: 0.75rem 0;
+  position: relative;
+  z-index: 1;
+}
+@media (hover: hover) {
+  .amenity-photo {
+    transition: background-size 0.3s ease;
+    background-size: 100% auto;
+  }
+  .amenity-photo:hover {
+    background-size: 103% auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amenity-photo {
+    transition: none;
+  }
+}
+.admin-header nav {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.35rem;
+}
+.admin-header nav a {
+  color: inherit;
+}
+.appearance {
+  max-width: 1100px;
+}
+.appearance-section {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.25rem;
+  margin: 1rem 0;
+}
+.appearance-section > label,
+.card-editor > label {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.8rem 0;
+}
+.appearance input,
+.appearance textarea,
+.appearance select {
+  max-width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #c9d1cc;
+  border-radius: 8px;
+}
+.appearance textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.hero-preview {
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+.logo-preview {
+  display: block;
+  width: 218px;
+  height: 48px;
+  object-fit: contain;
+  margin: 1rem 0;
+}
+.card-editors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.card-editor {
+  border: 1px solid #d9dfdb;
+  border-radius: 14px;
+  padding: 1rem;
+  min-width: 0;
+}
+.admin-preview {
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+.admin-upload {
+  display: inline-flex !important;
+  width: max-content;
+  cursor: pointer;
+  background: #e6eee9;
+  border-radius: 8px;
+  padding: 0.7rem 1rem !important;
+}
+.admin-upload input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+}
+.admin-upload.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.save-appearance {
+  margin-top: 1rem;
+}
+.admin-notice {
+  padding: 1rem;
+  background: #fff5d9;
+  border-radius: 10px;
+}
+@media (max-width: 700px) {
+  .card-editors {
+    grid-template-columns: 1fr;
+  }
+  .appearance-section {
+    padding: 1rem;
+  }
+  .admin-header {
+    align-items: flex-start;
+  }
+  .admin-header > div:last-child {
+    align-items: flex-end;
+  }
+  .appearance .admin-title {
+    display: block;
+  }
+  .appearance .admin-title a {
+    display: inline-block;
+    margin-top: 0.5rem;
+  }
+}
