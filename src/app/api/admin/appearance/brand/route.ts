@@ -2,7 +2,7 @@ import { getAdminContext } from "@/lib/admin-auth";
 import { verifySameOrigin } from "@/lib/admin-origin";
 import { getPool } from "@/lib/db";
 const err = (message: string, status: number) => Response.json({ error: { message } }, { status });
-export async function PUT(request: Request) {
+async function updateBrand(request: Request) {
   if (!verifySameOrigin(request)) return err("Недопустимый источник запроса.", 403);
   const admin = await getAdminContext();
   if (!admin) return err("Требуется вход.", 401);
@@ -22,4 +22,12 @@ export async function PUT(request: Request) {
     [logoAssetId, admin.id],
   );
   return Response.json({ ok: true });
+}
+
+export async function PUT(...args: Parameters<typeof updateBrand>) {
+  try {
+    return await updateBrand(...args);
+  } catch {
+    return Response.json({ error: { message: "Сервис временно недоступен." } }, { status: 503 });
+  }
 }

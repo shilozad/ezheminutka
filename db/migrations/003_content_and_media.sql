@@ -1,4 +1,3 @@
-BEGIN;
 CREATE TABLE media_assets (
  id UUID PRIMARY KEY, location_id VARCHAR(32) NULL REFERENCES locations(slug) ON DELETE CASCADE,
  storage_key TEXT UNIQUE NOT NULL, original_name VARCHAR(255) NOT NULL,
@@ -30,4 +29,3 @@ SELECT city||'-'||item.id,city,item.title,item.description,item.icon,item.ord FR
  (VALUES ('1','Ёжики','Бережное общение с главными хозяевами.','hedgehog',10),('2','Чай и печенье','Тёплое дополнение к неспешной встрече.','tea',20),('3','Настольные игры','Для двоих, семьи или компании.','board-games',30),('4','Игровые приставки','Для дружеского турнира.','console',40),('5','Wi-Fi','Оставайтесь на связи.','wifi',50),('6','Уютное пространство','Для отдыха и разговоров.','lounge',60)) item(id,title,description,icon,ord);
 CREATE INDEX media_assets_location_idx ON media_assets(location_id);
 CREATE INDEX location_amenities_order_idx ON location_amenities(location_id,sort_order);
-COMMIT;

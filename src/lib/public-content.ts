@@ -54,17 +54,15 @@ export async function getLocationPresentation(
       heroAssetId: c?.hero_asset_id ?? null,
       amenitiesEyebrow: c?.amenities_eyebrow ?? fallback.amenitiesEyebrow,
       amenitiesTitle: c?.amenities_title ?? fallback.amenitiesTitle,
-      amenities: cards.rows.length
-        ? cards.rows.map((a) => ({
-            id: a.id,
-            title: a.title,
-            description: a.description,
-            iconKey: a.icon_key ?? "none",
-            backgroundAssetId: a.background_asset_id,
-            backgroundUrl: a.background_key ? mediaUrl(a.background_key) : null,
-            active: a.active,
-          }))
-        : fallback.amenities,
+      amenities: cards.rows.map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        iconKey: a.icon_key ?? "none",
+        backgroundAssetId: a.background_asset_id,
+        backgroundUrl: a.background_key ? mediaUrl(a.background_key) : null,
+        active: a.active,
+      })),
     };
   } catch (error) {
     console.error("Public content fallback:", error);

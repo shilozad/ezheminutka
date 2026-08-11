@@ -13,7 +13,7 @@ import {
 import { isLocationSlug } from "@/config/locations";
 const error = (message: string, status: number) =>
   Response.json({ error: { message } }, { status });
-export async function POST(request: Request) {
+async function postMedia(request: Request) {
   if (!verifySameOrigin(request)) return error("Недопустимый источник запроса.", 403);
   const admin = await getAdminContext();
   if (!admin) return error("Требуется вход.", 401);
@@ -63,5 +63,13 @@ export async function POST(request: Request) {
   } catch {
     await deleteMedia(key);
     return error("Не удалось сохранить изображение.", 503);
+  }
+}
+
+export async function POST(...args: Parameters<typeof postMedia>) {
+  try {
+    return await postMedia(...args);
+  } catch {
+    return Response.json({ error: { message: "Сервис временно недоступен." } }, { status: 503 });
   }
 }

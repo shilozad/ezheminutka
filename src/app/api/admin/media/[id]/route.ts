@@ -3,7 +3,7 @@ import { verifySameOrigin } from "@/lib/admin-origin";
 import { getPool } from "@/lib/db";
 import { deleteMedia, uploadsEnabled } from "@/lib/media-storage";
 const err = (message: string, status: number) => Response.json({ error: { message } }, { status });
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function deleteMediaAsset(request: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!verifySameOrigin(request)) return err("Недопустимый источник запроса.", 403);
   const admin = await getAdminContext();
   if (!admin) return err("Требуется вход.", 401);
@@ -27,4 +27,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   await pool.query(`DELETE FROM media_assets WHERE id=$1`, [id]);
   await deleteMedia(asset.storage_key);
   return new Response(null, { status: 204 });
+}
+
+export async function DELETE(...args: Parameters<typeof deleteMediaAsset>) {
+  try {
+    return await deleteMediaAsset(...args);
+  } catch {
+    return Response.json({ error: { message: "Сервис временно недоступен." } }, { status: 503 });
+  }
 }

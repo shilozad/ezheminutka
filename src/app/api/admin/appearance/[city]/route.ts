@@ -10,7 +10,10 @@ const text = (x: unknown, min: number, max: number, name: string) =>
     : (() => {
         throw new Error(name);
       })();
-export async function PUT(request: Request, { params }: { params: Promise<{ city: string }> }) {
+async function updateAppearance(
+  request: Request,
+  { params }: { params: Promise<{ city: string }> },
+) {
   if (!verifySameOrigin(request)) return err("Недопустимый источник запроса.", 403);
   const admin = await getAdminContext();
   if (!admin) return err("Требуется вход.", 401);
@@ -97,5 +100,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ city
     );
   } finally {
     client.release();
+  }
+}
+
+export async function PUT(...args: Parameters<typeof updateAppearance>) {
+  try {
+    return await updateAppearance(...args);
+  } catch {
+    return Response.json({ error: { message: "Сервис временно недоступен." } }, { status: 503 });
   }
 }

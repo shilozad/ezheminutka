@@ -4,6 +4,8 @@ import type { AdminContext } from "@/lib/admin-auth";
 import type { LocationPresentation } from "@/lib/public-content";
 import type { AmenityPresentation } from "@/content/amenities";
 import { amenityIconKeys, AmenityIcon } from "@/components/AmenityIcon";
+import type { AmenityIconKey } from "@/components/AmenityIcon";
+import type { LocationSlug } from "@/config/locations";
 import { AdminHeader } from "./AdminHeader";
 const names = { moscow: "Москва", spb: "Санкт-Петербург", kazan: "Казань" };
 type Asset = { id: string; url: string };
@@ -23,11 +25,14 @@ export default function Editor({
     [logo, setLogo] = useState(initialLogo),
     [busy, setBusy] = useState(""),
     [message, setMessage] = useState(""),
-    [dirty, setDirty] = useState(false);
+    [dirtyCities, setDirtyCities] = useState<Set<LocationSlug>>(() => new Set());
   const current = data[city];
   function patch(value: Partial<LocationPresentation>) {
-    setData({ ...data, [city]: { ...current, ...value } });
-    setDirty(true);
+    setData((previous) => ({
+      ...previous,
+      [city]: { ...previous[city], ...value },
+    }));
+    setDirtyCities((previous) => new Set(previous).add(city));
   }
   function cards(value: AmenityPresentation[]) {
     patch({ amenities: value });
@@ -44,7 +49,13 @@ export default function Editor({
       if (!r.ok) throw new Error(j.error.message);
       return j.asset as Asset;
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Ошибка загрузки.");
+      setMessage(
+        e instanceof TypeError
+          ? "Сервис временно недоступен."
+          : e instanceof Error
+            ? e.message
+            : "Ошибка загрузки.",
+      );
       return null;
     } finally {
       setBusy("");
@@ -52,53 +63,95 @@ export default function Editor({
   }
   async function save() {
     if (busy) return;
+    const savedCity = city;
+    const savedContent = current;
     setBusy("save");
     setMessage("Сохраняем…");
-    const r = await fetch(`/api/admin/appearance/${city}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        ...current,
-        heroAssetId: current.heroAssetId,
-        amenities: current.amenities.map((x) => ({ ...x, backgroundAssetId: x.backgroundAssetId })),
-      }),
-    });
-    const j = await r.json();
-    setBusy("");
-    if (r.ok) {
-      setDirty(false);
+    try {
+      const r = await fetch(`/api/admin/appearance/${savedCity}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(savedContent),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error?.message || "Не удалось сохранить изменения.");
+      setDirtyCities((previous) => {
+        const next = new Set(previous);
+        next.delete(savedCity);
+        return next;
+      });
       setMessage("Изменения сохранены");
-    } else setMessage(j.error.message);
+    } catch (error) {
+      setMessage(
+        error instanceof TypeError
+          ? "Сервис временно недоступен."
+          : error instanceof Error
+            ? error.message
+            : "Сервис временно недоступен.",
+      );
+    } finally {
+      setBusy("");
+    }
   }
   async function logoUpload(file: File) {
     const a = await upload(file, null);
     if (!a) return;
-    const r = await fetch("/api/admin/appearance/brand", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ logoAssetId: a.id }),
-    });
-    if (r.ok) {
+    setBusy("logo");
+    try {
+      const r = await fetch("/api/admin/appearance/brand", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ logoAssetId: a.id }),
+      });
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.error?.message || "Не удалось сохранить логотип.");
       setLogo(a);
       setMessage("Логотип сохранён");
+    } catch (error) {
+      setMessage(
+        error instanceof TypeError
+          ? "Сервис временно недоступен."
+          : error instanceof Error
+            ? error.message
+            : "Сервис временно недоступен.",
+      );
+    } finally {
+      setBusy("");
     }
   }
   async function resetLogo() {
-    await fetch("/api/admin/appearance/brand", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: '{"logoAssetId":null}',
-    });
-    setLogo(null);
+    if (busy) return;
+    setBusy("logo");
+    try {
+      const r = await fetch("/api/admin/appearance/brand", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: '{"logoAssetId":null}',
+      });
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.error?.message || "Не удалось сбросить логотип.");
+      setLogo(null);
+      setMessage("Стандартный логотип восстановлен");
+    } catch (error) {
+      setMessage(
+        error instanceof TypeError
+          ? "Сервис временно недоступен."
+          : error instanceof Error
+            ? error.message
+            : "Сервис временно недоступен.",
+      );
+    } finally {
+      setBusy("");
+    }
   }
   return (
     <div className="admin-page">
       <AdminHeader admin={admin} subtitle="Внешний вид сайта" />
-      <main className="admin-content appearance">
+      <section className="admin-content appearance">
         <div className="admin-title">
           <div>
             <h1>Внешний вид сайта</h1>
-            {dirty && <small>Есть несохранённые изменения</small>}
+            {dirtyCities.has(city) && <small>Есть несохранённые изменения</small>}
           </div>
           <a href={`/${city}`} target="_blank">
             Открыть страницу кафе ↗
@@ -120,7 +173,8 @@ export default function Editor({
         <div className="admin-city-tabs">
           {admin.allowedLocations.map((x) => (
             <button className={city === x ? "active" : ""} onClick={() => setCity(x)} key={x}>
-              {names[x]}
+              {names[x]}{" "}
+              {dirtyCities.has(x) && <span aria-label="Есть несохранённые изменения">•</span>}
             </button>
           ))}
         </div>
@@ -157,17 +211,15 @@ export default function Editor({
             disabled={!uploadEnabled || !!busy}
             label="Загрузить фото"
             onFile={async (f) => {
-              const a: any = await upload(f, city);
+              const a = await upload(f, city);
               if (a) {
-                patch({ heroImage: a.url } as any);
-                (data[city] as any).heroAssetId = a.id;
+                patch({ heroImage: a.url, heroAssetId: a.id });
               }
             }}
           />
           <button
             onClick={() => {
-              patch({ heroImage: null });
-              (data[city] as any).heroAssetId = null;
+              patch({ heroImage: null, heroAssetId: null });
             }}
           >
             Убрать фото
@@ -229,7 +281,7 @@ export default function Editor({
                     onChange={(e) =>
                       cards(
                         current.amenities.map((x, j) =>
-                          j === i ? { ...x, iconKey: e.target.value as any } : x,
+                          j === i ? { ...x, iconKey: e.target.value as AmenityIconKey } : x,
                         ),
                       )
                     }
@@ -243,7 +295,7 @@ export default function Editor({
                   disabled={!uploadEnabled || !!busy}
                   label="Загрузить фон"
                   onFile={async (f) => {
-                    const asset: any = await upload(f, city);
+                    const asset = await upload(f, city);
                     if (asset)
                       cards(
                         current.amenities.map((x, j) =>
@@ -336,7 +388,7 @@ export default function Editor({
           {busy === "save" ? "Сохраняем…" : "Сохранить изменения"}
         </button>
         {message && <p role="status">{message}</p>}
-      </main>
+      </section>
     </div>
   );
 }

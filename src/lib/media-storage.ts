@@ -32,14 +32,43 @@ export function mediaUrl(key: string) {
   return `/uploads/${key.split("/").map(encodeURIComponent).join("/")}`;
 }
 export function detectImage(bytes: Uint8Array): { mime: string; extension: string } | null {
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
+  if (
+    bytes.length >= 16 &&
+    bytes[0] === 0xff &&
+    bytes[1] === 0xd8 &&
+    bytes[2] === 0xff &&
+    bytes.at(-2) === 0xff &&
+    bytes.at(-1) === 0xd9
+  )
     return { mime: "image/jpeg", extension: "jpg" };
-  if ([137, 80, 78, 71, 13, 10, 26, 10].every((x, i) => bytes[i] === x))
+  if (
+    bytes.length >= 45 &&
+    [137, 80, 78, 71, 13, 10, 26, 10].every((x, i) => bytes[i] === x) &&
+    readUint32BE(bytes, 8) === 13 &&
+    ascii(bytes, 12, 16) === "IHDR" &&
+    readUint32BE(bytes, bytes.length - 12) === 0 &&
+    ascii(bytes, bytes.length - 8, bytes.length - 4) === "IEND"
+  )
     return { mime: "image/png", extension: "png" };
   if (
+    bytes.length >= 20 &&
     String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" &&
-    String.fromCharCode(...bytes.slice(8, 12)) === "WEBP"
+    ascii(bytes, 8, 12) === "WEBP" &&
+    readUint32LE(bytes, 4) + 8 === bytes.length &&
+    ["VP8 ", "VP8L", "VP8X"].includes(ascii(bytes, 12, 16))
   )
     return { mime: "image/webp", extension: "webp" };
   return null;
+}
+
+function ascii(bytes: Uint8Array, start: number, end: number) {
+  return String.fromCharCode(...bytes.slice(start, end));
+}
+
+function readUint32BE(bytes: Uint8Array, offset: number) {
+  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(offset, false);
+}
+
+function readUint32LE(bytes: Uint8Array, offset: number) {
+  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(offset, true);
 }

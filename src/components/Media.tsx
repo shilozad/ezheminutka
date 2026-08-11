@@ -20,9 +20,17 @@ export function Media({
   const classes = `media-placeholder ${src ? "has-image" : ""} ${className}`.trim();
 
   if (src) {
+    const runtimeUpload = src.startsWith("/uploads/");
     return (
       <div className={classes}>
-        <Image src={src} alt={alt} fill priority={priority} sizes={sizes} />
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          priority={priority}
+          sizes={sizes}
+          unoptimized={runtimeUpload}
+        />
       </div>
     );
   }

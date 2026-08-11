@@ -1206,20 +1206,6 @@ p {
   position: relative;
   z-index: 1;
 }
-@media (hover: hover) {
-  .amenity-photo {
-    transition: background-size 0.3s ease;
-    background-size: 100% auto;
-  }
-  .amenity-photo:hover {
-    background-size: 103% auto;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .amenity-photo {
-    transition: none;
-  }
-}
 .admin-header nav {
   display: flex;
   gap: 1rem;
