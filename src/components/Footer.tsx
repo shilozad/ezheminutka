@@ -4,9 +4,11 @@ import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
 import { getAllLocations, isLocationSlug } from "@/config/locations";
 export function Footer() {
-  const first = usePathname().split("/").filter(Boolean)[0];
+  const pathname = usePathname();
+  const first = pathname.split("/").filter(Boolean)[0];
   const current = first && isLocationSlug(first) ? first : null;
   const location = current ? getAllLocations().find((x) => x.slug === current) : null;
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return null;
   return (
     <footer className="footer">
       <div className="container footer-grid">

@@ -6,11 +6,12 @@ export const SESSION_SECONDS = 8 * 60 * 60;
 export type SessionPayload = { userId: string; sessionVersion: number; expiresAt: number };
 
 function secret() {
-  return process.env.ADMIN_SESSION_SECRET || null;
+  const value = process.env.ADMIN_SESSION_SECRET;
+  return value && Buffer.byteLength(value, "utf8") >= 32 ? value : null;
 }
 export function createSessionToken(payload: SessionPayload): string {
   const key = secret();
-  if (!key) throw new Error("ADMIN_SESSION_SECRET is not configured");
+  if (!key) throw new Error("ADMIN_SESSION_SECRET must contain at least 32 bytes");
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${createHmac("sha256", key).update(body).digest("base64url")}`;
 }

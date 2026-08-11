@@ -12,24 +12,26 @@ if (
 )
   throw new Error("LOCATION_ADMIN требует --locations moscow, spb или kazan.");
 const db = await pool();
+const client = await db.connect();
 try {
   const id = randomUUID(),
     encoded = await hash(await password());
-  await db.query("BEGIN");
-  await db.query(
+  await client.query("BEGIN");
+  await client.query(
     "INSERT INTO admin_users(id,username,display_name,password_hash,role) VALUES($1,$2,$3,$4,$5)",
     [id, username, a["display-name"].trim(), encoded, role],
   );
   for (const location of locations)
-    await db.query("INSERT INTO admin_user_locations(admin_user_id,location_id) VALUES($1,$2)", [
-      id,
-      location,
-    ]);
-  await db.query("COMMIT");
+    await client.query(
+      "INSERT INTO admin_user_locations(admin_user_id,location_id) VALUES($1,$2)",
+      [id, location],
+    );
+  await client.query("COMMIT");
   console.log(`Администратор ${username} создан.`);
 } catch (e) {
-  await db.query("ROLLBACK");
+  await client.query("ROLLBACK");
   throw e;
 } finally {
+  client.release();
   await db.end();
 }

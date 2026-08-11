@@ -22,7 +22,7 @@ export async function getAdminBookings(admin: AdminContext): Promise<AdminBookin
     visit_date::text "visitDate", to_char(visit_time,'HH24:MI') "visitTime", guest_count "guestCount", visit_type "visitType",
     comment, status, admin_note "adminNote", source, created_at::text "createdAt" FROM bookings
     WHERE ($1::boolean OR location_id = ANY($2::varchar[]))
-    ORDER BY (visit_date < CURRENT_DATE), visit_date, visit_time LIMIT 300`,
+    ORDER BY (visit_date < (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date), visit_date, visit_time LIMIT 300`,
     [admin.role === "SUPERADMIN", admin.allowedLocations],
   );
   return result.rows;

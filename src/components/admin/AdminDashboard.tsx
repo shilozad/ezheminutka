@@ -37,13 +37,18 @@ export default function AdminDashboard({
       ),
     [initialBookings, search, status, city],
   );
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Moscow",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.replace("/admin/login");
   }
   return (
-    <main className="admin-page">
+    <div className="admin-page">
       <header className="admin-header">
         <div>
           <b>Ежеминутка</b>
@@ -142,7 +147,7 @@ export default function AdminDashboard({
           }}
         />
       )}
-    </main>
+    </div>
   );
 }
 function Stat({ n, t }: { n: number; t: string }) {
@@ -166,31 +171,52 @@ function BookingModal({
 }) {
   const defaultCity = (booking?.locationId || admin.allowedLocations[0]) as LocationSlug,
     [location, setLocation] = useState(defaultCity),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [saving, setSaving] = useState(false),
+    [deleting, setDeleting] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (saving || deleting) return;
+    setSaving(true);
+    setError("");
     const f = new FormData(e.currentTarget),
       body = Object.fromEntries(f);
     body.guestCount = Number(body.guestCount) as never;
-    const response = await fetch(
-      booking ? `/api/admin/bookings/${booking.id}` : "/api/admin/bookings",
-      {
-        method: booking ? "PATCH" : "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
-      },
-    );
-    if (response.ok) refresh();
-    else setError((await response.json()).error.message);
+    try {
+      const response = await fetch(
+        booking ? `/api/admin/bookings/${booking.id}` : "/api/admin/bookings",
+        {
+          method: booking ? "PATCH" : "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
+      if (response.ok) refresh();
+      else setError((await response.json()).error.message);
+    } catch {
+      setError("Сервис временно недоступен.");
+    } finally {
+      setSaving(false);
+    }
   }
   async function remove() {
     if (
+      saving ||
+      deleting ||
       !booking ||
       !confirm(`Удалить бронь ${booking.publicNumber}? Это действие нельзя отменить.`)
     )
       return;
-    const r = await fetch(`/api/admin/bookings/${booking.id}`, { method: "DELETE" });
-    r.ok ? refresh() : setError((await r.json()).error.message);
+    setDeleting(true);
+    setError("");
+    try {
+      const r = await fetch(`/api/admin/bookings/${booking.id}`, { method: "DELETE" });
+      r.ok ? refresh() : setError((await r.json()).error.message);
+    } catch {
+      setError("Сервис временно недоступен.");
+    } finally {
+      setDeleting(false);
+    }
   }
   return (
     <div className="admin-modal" role="dialog">
@@ -278,10 +304,17 @@ function BookingModal({
         </label>
         {error && <p className="admin-error">{error}</p>}
         <div className="admin-actions">
-          <button className="admin-primary">Сохранить</button>
+          <button className="admin-primary" disabled={saving || deleting}>
+            {saving ? "Сохраняем…" : "Сохранить"}
+          </button>
           {booking && (
-            <button type="button" className="admin-danger" onClick={remove}>
-              Удалить
+            <button
+              type="button"
+              className="admin-danger"
+              onClick={remove}
+              disabled={saving || deleting}
+            >
+              {deleting ? "Удаляем…" : "Удалить"}
             </button>
           )}
         </div>

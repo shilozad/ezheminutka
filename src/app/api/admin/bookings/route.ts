@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import type { DatabaseError } from "pg";
 import { getAdminContext, canAccessLocation } from "@/lib/admin-auth";
 import { verifySameOrigin } from "@/lib/admin-origin";
 import { validateBookingFields } from "@/lib/booking-validation";
@@ -33,29 +34,39 @@ export async function POST(request: Request) {
     return fail("Неизвестный статус.", 422);
   const note = typeof input.adminNote === "string" ? input.adminNote.trim() : null;
   if (note && note.length > 2000) return fail("Заметка слишком длинная.", 422);
-  try {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
     const number = createBookingPublicNumber(b.locationId);
-    await getPool().query(
-      `INSERT INTO bookings(id,public_number,location_id,full_name,phone,visit_date,visit_time,guest_count,visit_type,comment,status,admin_note,consent_at,source,created_by_admin_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NULL,'ADMIN',$13)`,
-      [
-        randomUUID(),
-        number,
-        b.locationId,
-        b.fullName,
-        b.phone,
-        b.visitDate,
-        b.visitTime,
-        b.guestCount,
-        b.visitType,
-        b.comment,
-        status,
-        note,
-        admin.id,
-      ],
-    );
-    return NextResponse.json({ ok: true, booking: { publicNumber: number } }, { status: 201 });
-  } catch (e) {
-    console.error("Admin booking create failed", e);
-    return fail("Сервис временно недоступен.", 503);
+    try {
+      await getPool().query(
+        `INSERT INTO bookings(id,public_number,location_id,full_name,phone,visit_date,visit_time,guest_count,visit_type,comment,status,admin_note,consent_at,source,created_by_admin_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NULL,'ADMIN',$13)`,
+        [
+          randomUUID(),
+          number,
+          b.locationId,
+          b.fullName,
+          b.phone,
+          b.visitDate,
+          b.visitTime,
+          b.guestCount,
+          b.visitType,
+          b.comment,
+          status,
+          note,
+          admin.id,
+        ],
+      );
+      return NextResponse.json({ ok: true, booking: { publicNumber: number } }, { status: 201 });
+    } catch (error) {
+      const databaseError = error as DatabaseError;
+      if (
+        databaseError.code === "23505" &&
+        databaseError.constraint === "bookings_public_number_key"
+      )
+        continue;
+      console.error("Admin booking create failed", error);
+      return fail("Сервис временно недоступен.", 503);
+    }
   }
+  console.error("Could not generate a unique admin booking public number");
+  return fail("Сервис временно недоступен.", 503);
 }

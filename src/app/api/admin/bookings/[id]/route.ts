@@ -26,7 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     } catch {
       return fail("Проверьте данные формы.", 400);
     }
-    const valid = validateBookingFields(body);
+    const valid = validateBookingFields(body, { allowPastDate: true });
     if (!valid.ok) return fail(valid.message, 422);
     const b = valid.value;
     if (!canAccessLocation(auth.admin!, b.locationId)) return fail("Недостаточно прав.", 403);
@@ -38,8 +38,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       (note && note.length > 2000)
     )
       return fail("Проверьте статус и заметку.", 422);
-    await getPool().query(
-      `UPDATE bookings SET location_id=$2,full_name=$3,phone=$4,visit_date=$5,visit_time=$6,guest_count=$7,visit_type=$8,comment=$9,status=$10,admin_note=$11,updated_at=NOW() WHERE id=$1`,
+    const updated = await getPool().query(
+      `UPDATE bookings SET location_id=$2,full_name=$3,phone=$4,visit_date=$5,visit_time=$6,guest_count=$7,visit_type=$8,comment=$9,status=$10,admin_note=$11,updated_at=NOW()
+       WHERE id=$1 AND ($12::boolean OR location_id = ANY($13::varchar[]))`,
       [
         id,
         b.locationId,
@@ -52,8 +53,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         b.comment,
         status,
         note,
+        auth.admin!.role === "SUPERADMIN",
+        auth.admin!.allowedLocations,
       ],
     );
+    if (!updated.rowCount) return fail("Бронь не найдена или недостаточно прав.", 404);
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Admin booking update failed", e);
@@ -65,7 +69,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const { id } = await params;
     const auth = await access(request, id);
     if (auth.error) return auth.error;
-    await getPool().query("DELETE FROM bookings WHERE id=$1", [id]);
+    const deleted = await getPool().query(
+      "DELETE FROM bookings WHERE id=$1 AND ($2::boolean OR location_id = ANY($3::varchar[]))",
+      [id, auth.admin!.role === "SUPERADMIN", auth.admin!.allowedLocations],
+    );
+    if (!deleted.rowCount) return fail("Бронь не найдена или недостаточно прав.", 404);
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Admin booking delete failed", e);

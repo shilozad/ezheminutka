@@ -37,7 +37,10 @@ function calendarDateFor(location: LocationSlug): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
-export function validateBookingFields(body: unknown): ValidationResult {
+export function validateBookingFields(
+  body: unknown,
+  { allowPastDate = false }: { allowPastDate?: boolean } = {},
+): ValidationResult {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return { ok: false, message: "Проверьте данные формы." };
   }
@@ -69,7 +72,7 @@ export function validateBookingFields(body: unknown): ValidationResult {
     date.getUTCFullYear() !== year ||
     date.getUTCMonth() !== month - 1 ||
     date.getUTCDate() !== day ||
-    visitDate < calendarDateFor(locationId)
+    (!allowPastDate && visitDate < calendarDateFor(locationId))
   ) {
     return { ok: false, message: "Дата посещения не может быть в прошлом." };
   }

@@ -7,8 +7,8 @@ export default async function Page() {
     if (await getAdminContext()) redirect("/admin");
   } catch {}
   return (
-    <main className="admin-login-page">
+    <div className="admin-login-page">
       <AdminLogin />
-    </main>
+    </div>
   );
 }
