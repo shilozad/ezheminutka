@@ -14,6 +14,10 @@ export function Header() {
     document.body.classList.toggle("menu-open", open);
     return () => document.body.classList.remove("menu-open");
   }, [open]);
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  useEffect(() => {
+    if (isAdmin) setOpen(false);
+  }, [isAdmin]);
   const close = () => setOpen(false);
   const cityLinks = slug
     ? [
@@ -25,6 +29,7 @@ export function Header() {
         ["Контакты", `/${slug}#contacts`],
       ]
     : [["Наши кафе", "/#locations"]];
+  if (isAdmin) return null;
   return (
     <header className="header">
       <div className="container header-inner">

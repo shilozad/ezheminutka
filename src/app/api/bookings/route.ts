@@ -1,31 +1,15 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import type { DatabaseError } from "pg";
 import { validateBooking } from "@/lib/booking-validation";
 import { getPool } from "@/lib/db";
 import { requestIp, takeBookingRateLimit } from "@/lib/rate-limit";
+import { createBookingPublicNumber } from "@/lib/booking-public-number";
 
 export const runtime = "nodejs";
-const prefixes = { moscow: "MSK", spb: "SPB", kazan: "KZN" } as const;
-const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
 function response(message: string, status: number) {
   return NextResponse.json({ ok: false, error: { message } }, { status });
-}
-
-function publicNumber(location: keyof typeof prefixes): string {
-  const dateParts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Moscow",
-    year: "2-digit",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts();
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    dateParts.find((item) => item.type === type)?.value ?? "00";
-  const stamp = `${part("year")}${part("month")}${part("day")}`;
-  const bytes = randomBytes(5);
-  const suffix = Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
-  return `${prefixes[location]}-${stamp}-${suffix}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -53,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   const booking = validation.value;
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    const number = publicNumber(booking.locationId);
+    const number = createBookingPublicNumber(booking.locationId);
     try {
       await getPool().query(
         `INSERT INTO bookings

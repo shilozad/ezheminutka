@@ -37,15 +37,15 @@ function calendarDateFor(location: LocationSlug): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
-export function validateBooking(body: unknown): ValidationResult {
+export function validateBookingFields(
+  body: unknown,
+  { allowPastDate = false }: { allowPastDate?: boolean } = {},
+): ValidationResult {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return { ok: false, message: "Проверьте данные формы." };
   }
 
   const input = body as Record<string, unknown>;
-  if (textField(input.website)) {
-    return { ok: false, message: "Не удалось отправить заявку.", honeypot: true };
-  }
   if (typeof input.locationId !== "string" || !isLocationSlug(input.locationId)) {
     return { ok: false, message: "Выбран неизвестный город." };
   }
@@ -72,7 +72,7 @@ export function validateBooking(body: unknown): ValidationResult {
     date.getUTCFullYear() !== year ||
     date.getUTCMonth() !== month - 1 ||
     date.getUTCDate() !== day ||
-    visitDate < calendarDateFor(locationId)
+    (!allowPastDate && visitDate < calendarDateFor(locationId))
   ) {
     return { ok: false, message: "Дата посещения не может быть в прошлом." };
   }
@@ -95,10 +95,6 @@ export function validateBooking(body: unknown): ValidationResult {
   if (comment && comment.length > 1000) {
     return { ok: false, message: "Комментарий не должен превышать 1000 символов." };
   }
-  if (input.consent !== true) {
-    return { ok: false, message: "Необходимо согласие на обработку персональных данных." };
-  }
-
   return {
     ok: true,
     value: {
@@ -112,4 +108,15 @@ export function validateBooking(body: unknown): ValidationResult {
       comment: comment || null,
     },
   };
+}
+
+export function validateBooking(body: unknown): ValidationResult {
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    const input = body as Record<string, unknown>;
+    if (textField(input.website))
+      return { ok: false, message: "Не удалось отправить заявку.", honeypot: true };
+    if (input.consent !== true)
+      return { ok: false, message: "Необходимо согласие на обработку персональных данных." };
+  }
+  return validateBookingFields(body);
 }
