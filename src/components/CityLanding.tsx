@@ -5,14 +5,8 @@ import type { Location } from "@/config/locations";
 import type { LocationMedia } from "@/config/media";
 import type { LocationTariffs } from "@/content/tariffs";
 import type { Service } from "@/content/services";
-const amenities = [
-  ["Ёжики", "Бережное общение с главными хозяевами."],
-  ["Чай и печенье", "Тёплое дополнение к неспешной встрече."],
-  ["Настольные игры", "Для двоих, семьи или компании."],
-  ["Игровые приставки", "Для дружеского турнира."],
-  ["Wi-Fi", "Оставайтесь на связи."],
-  ["Уютное пространство", "Для отдыха и разговоров."],
-];
+import type { LocationPresentation } from "@/lib/public-content";
+import { AmenityIcon } from "./AmenityIcon";
 const rules = [
   "Слушать администратора",
   "Бережно обращаться с животными",
@@ -25,11 +19,13 @@ export function CityLanding({
   tariffs,
   media,
   services,
+  presentation,
 }: {
   location: Location;
   tariffs: LocationTariffs;
   media: LocationMedia;
   services: Service[];
+  presentation: LocationPresentation;
 }) {
   const base = `/${location.slug}`;
   const enabled = services.filter((x) => x.enabled);
@@ -38,9 +34,9 @@ export function CityLanding({
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow">Необычная пауза в большом городе</span>
-            <h1>{location.heroTitle}</h1>
-            <p className="lead">{location.description}</p>
+            <span className="eyebrow">{presentation.heroEyebrow}</span>
+            <h1>{presentation.heroTitle}</h1>
+            <p className="lead">{presentation.heroDescription}</p>
             <div className="actions">
               <Link className="button" href={`${base}/booking`}>
                 Забронировать посещение
@@ -55,7 +51,7 @@ export function CityLanding({
             </p>
           </div>
           <Media
-            src={media.hero}
+            src={presentation.heroImage}
             alt={`Интерьер Ежеминутки в ${location.cityPrepositional}`}
             className="hero-media"
             label={`Фотография кафе — ${location.name}`}
@@ -80,14 +76,25 @@ export function CityLanding({
       </section>
       <section className="section mint">
         <div className="container">
-          <span className="eyebrow">Внутри</span>
-          <h2>Что есть в «Ежеминутке»</h2>
+          <span className="eyebrow">{presentation.amenitiesEyebrow}</span>
+          <h2>{presentation.amenitiesTitle}</h2>
           <div className="amenities">
-            {amenities.map(([title, text], i) => (
-              <article className="amenity" key={title}>
-                <span>0{i + 1}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
+            {presentation.amenities.map((amenity, i) => (
+              <article
+                className={`amenity ${amenity.backgroundUrl ? "amenity-photo" : ""}`}
+                key={amenity.id}
+                style={
+                  amenity.backgroundUrl
+                    ? {
+                        backgroundImage: `linear-gradient(rgba(20,30,26,.55),rgba(20,30,26,.7)),url("${amenity.backgroundUrl}")`,
+                      }
+                    : undefined
+                }
+              >
+                <span>{String(i + 1).padStart(2, "0")}</span>
+                <AmenityIcon icon={amenity.iconKey} />
+                <h3>{amenity.title}</h3>
+                <p>{amenity.description}</p>
               </article>
             ))}
           </div>

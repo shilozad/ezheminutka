@@ -5,6 +5,7 @@ import type { AdminContext } from "@/lib/admin-auth";
 import type { AdminBooking } from "@/lib/admin-bookings";
 import { servicesByLocation } from "@/content/services";
 import type { LocationSlug } from "@/config/locations";
+import { AdminHeader } from "./AdminHeader";
 const cities = { moscow: "Москва", spb: "Санкт-Петербург", kazan: "Казань" },
   statuses = {
     NEW: "Новая",
@@ -49,21 +50,7 @@ export default function AdminDashboard({
   }
   return (
     <div className="admin-page">
-      <header className="admin-header">
-        <div>
-          <b>Ежеминутка</b>
-          <span>Управление бронированиями</span>
-        </div>
-        <div>
-          <span>
-            {admin.displayName} ·{" "}
-            {admin.role === "SUPERADMIN"
-              ? "Все кафе"
-              : admin.allowedLocations.map((x) => cities[x]).join(", ")}
-          </span>
-          <button onClick={logout}>Выйти</button>
-        </div>
-      </header>
+      <AdminHeader admin={admin} subtitle="Управление бронированиями" />
       <section className="admin-content">
         <div className="admin-title">
           <h1>Управление бронированиями</h1>
