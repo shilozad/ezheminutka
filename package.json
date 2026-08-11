@@ -9,7 +9,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "admin:create": "node scripts/admin-create.mjs",
+    "admin:reset-password": "node scripts/admin-reset-password.mjs"
   },
   "dependencies": {
     "next": "16.2.12",

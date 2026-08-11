@@ -93,3 +93,24 @@ docker run --rm -p 3000:3000 ezheminutka
 
 Реальные фотографии также загружаются вручную в media-папку соответствующего города. После
 загрузки пути указываются в `src/config/media.ts`; JSX менять не требуется.
+
+## Админка
+
+Единая административная система доступна по `/admin/login`; защищённая панель находится на
+`/admin`. Роль `SUPERADMIN` управляет всеми кафе, а `LOCATION_ADMIN` — только явно назначенными
+локациями. Права проверяются сервером при чтении и каждой мутации.
+
+Порядок настройки: настройте PostgreSQL, выполните `npm run db:migrate`, задайте длинный случайный
+`ADMIN_SESSION_SECRET` (рекомендуется не менее 32 случайных байт), создайте аккаунты и откройте
+`/admin/login`. Учётные данные и пароли не хранятся в git или env-файлах репозитория. Пароль
+запрашивается интерактивно и не принимается CLI-аргументом.
+
+```bash
+npm run admin:create -- --username admin-moscow --display-name "Москва" --role LOCATION_ADMIN --locations moscow
+npm run admin:create -- --username admin-spb --display-name "Санкт-Петербург" --role LOCATION_ADMIN --locations spb
+npm run admin:create -- --username admin-kazan --display-name "Казань" --role LOCATION_ADMIN --locations kazan
+npm run admin:create -- --username superadmin --display-name "Администратор сети" --role SUPERADMIN
+npm run admin:reset-password -- --username admin-moscow
+```
+
+Сброс пароля увеличивает `session_version` и завершает все прежние сессии пользователя.
