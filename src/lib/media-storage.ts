@@ -1,6 +1,6 @@
 import "server-only";
 import path from "node:path";
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 export const MAX_MEDIA_BYTES = 8 * 1024 * 1024;
 export function uploadsEnabled() {
   return process.env.MEDIA_UPLOAD_ENABLED === "true" && Boolean(process.env.UPLOAD_DIR);
@@ -21,8 +21,22 @@ export async function saveMedia(key: string, bytes: Uint8Array) {
 }
 export async function deleteMedia(key: string) {
   const target = resolveStoragePath(key);
-  if (!target) return;
-  await unlink(target).catch(() => undefined);
+  if (!target) throw new Error("Storage unavailable");
+  try {
+    await unlink(target);
+  } catch (error) {
+    if (isFileSystemError(error) && error.code === "ENOENT") return;
+    throw error;
+  }
+}
+export async function mediaExists(key: string) {
+  const target = resolveStoragePath(key);
+  if (!target) return false;
+  try {
+    return (await stat(target)).isFile();
+  } catch {
+    return false;
+  }
 }
 export async function readMedia(key: string) {
   const target = resolveStoragePath(key);
@@ -71,4 +85,8 @@ function readUint32BE(bytes: Uint8Array, offset: number) {
 
 function readUint32LE(bytes: Uint8Array, offset: number) {
   return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(offset, true);
+}
+
+function isFileSystemError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error;
 }

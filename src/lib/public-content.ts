@@ -4,7 +4,7 @@ import { getLocation } from "@/config/locations";
 import { mediaByLocation } from "@/config/media";
 import { defaultAmenities, type AmenityPresentation } from "@/content/amenities";
 import { getPool } from "@/lib/db";
-import { mediaUrl } from "@/lib/media-storage";
+import { mediaExists, mediaUrl } from "@/lib/media-storage";
 export type LocationPresentation = {
   heroEyebrow: string;
   heroTitle: string;
@@ -46,21 +46,26 @@ export async function getLocationPresentation(
       ),
     ]);
     const c = content.rows[0];
+    const [heroAvailable, ...backgroundsAvailable] = await Promise.all([
+      c?.hero_key ? mediaExists(c.hero_key) : false,
+      ...cards.rows.map((card) => (card.background_key ? mediaExists(card.background_key) : false)),
+    ]);
     return {
       heroEyebrow: c?.hero_eyebrow ?? fallback.heroEyebrow,
       heroTitle: c?.hero_title ?? fallback.heroTitle,
       heroDescription: c?.hero_description ?? fallback.heroDescription,
-      heroImage: c?.hero_key ? mediaUrl(c.hero_key) : fallback.heroImage,
+      heroImage: c?.hero_key && heroAvailable ? mediaUrl(c.hero_key) : fallback.heroImage,
       heroAssetId: c?.hero_asset_id ?? null,
       amenitiesEyebrow: c?.amenities_eyebrow ?? fallback.amenitiesEyebrow,
       amenitiesTitle: c?.amenities_title ?? fallback.amenitiesTitle,
-      amenities: cards.rows.map((a) => ({
+      amenities: cards.rows.map((a, index) => ({
         id: a.id,
         title: a.title,
         description: a.description,
         iconKey: a.icon_key ?? "none",
         backgroundAssetId: a.background_asset_id,
-        backgroundUrl: a.background_key ? mediaUrl(a.background_key) : null,
+        backgroundUrl:
+          a.background_key && backgroundsAvailable[index] ? mediaUrl(a.background_key) : null,
         active: a.active,
       })),
     };
